@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COMP 484 | Project 5</title>
+  <script src="https://kit.fontawesome.com/ef5359af4d.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<!-- body start -->
+
+<body>
+  <div class="sidenav">
+    <h1 class="quiz-title">CSUN Map Quiz</h1>
+    <p class="panel-text description">Please double click on the map to find the location of:</p>
+    <h2 class="panel-text current-location">Santa Susana Hall</h2>
+    <p class="panel-text feedback-message" id = "feedback"></p>
+    <p class="panel-text score-display" id = "score"></p>
+  </div>
+  <section class="main">
+    <gmp-map center="-34.397,150.644" zoom="8" mapId="DEMO_MAP_ID">
+    </gmp-map>
+
+  </section>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
