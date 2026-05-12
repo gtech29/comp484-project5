@@ -1,6 +1,7 @@
 body {
   font-family: "Lato", sans-serif;
 }
+
 .sidenav {
   width: 300px;
   height: 100vh;
@@ -99,7 +100,18 @@ body {
 
 .main {
   margin-left: 300px;
-  height: 100vh;
+  width: calc(100vw - 300px);
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.map {
+  width: 40%;
+  height: 90vh;
+
 }
 
 gmp-map {

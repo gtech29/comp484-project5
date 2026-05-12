@@ -38,13 +38,21 @@
     ? console.warn(p + " only loads once. Ignoring:", g)
     : (d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)));
 })({
-  key: "some-api-key",
+  key: "AIzaSyDirjh69Fd4mc1C9IXSP1zbN3jqqH3qcUE",
   v: "weekly",
 });
 
 async function initMap() {
   await google.maps.importLibrary("maps");
   await customElements.whenDefined("gmp-map");
+  const mapElement = document.querySelector("gmp-map");
+  const map = mapElement.innerMap;
+  map.setOptions({
+    gestureHandling: "none",
+    zoomControl: false,
+    disableDefaultUI: true,
+    keyboardShortcuts: false,
+  });
 
   console.log("Google Map loaded successfully.");
 }

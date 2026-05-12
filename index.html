@@ -11,18 +11,19 @@
 <!-- body start -->
 
 <body>
-  <div class="sidenav">
-    <h1 class="quiz-title">CSUN Map Quiz</h1>
-    <p class="panel-text description">Please double click on the map to find the location of:</p>
-    <h2 class="panel-text current-location">Santa Susana Hall</h2>
-    <p class="panel-text feedback-message" id="feedback"></p>
-    <p class="panel-text score-display" id="score"></p>
-  </div>
-  <section class="main">
-    <gmp-map center="34.239,-118.528" zoom="8" map-id="d99504023f93f95a36ddf7f0"></gmp-map>
+  <main class="main">
+    <div class="sidenav">
+      <h1 class="quiz-title">CSUN Map Quiz</h1>
+      <p class="panel-text description">Please double click on the map to find the location of:</p>
+      <h2 class="panel-text current-location">Santa Susana Hall</h2>
+      <p class="panel-text feedback-message" id="feedback"></p>
+      <p class="panel-text score-display" id="score"></p>
+    </div>
+    <section class="map" id="map">
+      <gmp-map center="34.23886975822054, -118.52925979122362" zoom="17" map-id="d99504023f93f95a36ddf7f0"></gmp-map>
 
-  </section>
-
+    </section>
+  </main>
   <script src="script.js"></script>
 </body>
 
