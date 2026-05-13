@@ -1,3 +1,4 @@
+// Google Maps
 ((g) => {
   var h,
     a,
@@ -60,3 +61,53 @@ async function initMap() {
 initMap().catch((error) => {
   console.error("Google Map failed to load:", error);
 });
+/////////////////////////////////////////
+/////          Tracker 1            /////
+/////////////////////////////////////////
+// This tracker needs to determine Which location/question should the side panel ask the user to find right now?
+// start on the first location: Santa Susana Hall
+// after the user makes a guess the app moves to the next question/location and so on.
+// keep going until all five locations are finished
+const csunLocations = [
+  {
+    name: "Santa Susana Hall",
+    grid: "D2",
+  },
+  {
+    name: "C.R. Johnson Auditorium",
+    grid: "D5",
+  },
+  {
+    name: "Charles H. Noski Auditorium",
+    grid: "C5",
+  },
+  {
+    name: "Bookstein Hall",
+    grid: "C5",
+  },
+  {
+    name: "Arbor Grill",
+    grid: "D5",
+  },
+];
+let score = 0;
+let currentQuestionIndex = 0;
+
+const currentLocationDisplay = document.querySelector(".current-location");
+const feedbackDisplay = document.querySelector("#feedback");
+const scoreDisplay = document.querySelector("#score");
+
+function updateSidePanel() {
+  const currentLocation = csunLocations[currentQuestionIndex];
+  currentLocationDisplay.textContent = currentLocation.name;
+  feedbackDisplay = "";
+  scoreDisplay.textContent = `Score: ${score}/${csunLocations.length}`;
+}
+updateSidePanel();
+/////////////////////////////////////////
+/////          Tracker 2            /////
+/////////////////////////////////////////
+// This tracker calculates and keeps track of the score,
+// it starts at 0/5 and if the answer is right then add 1 to the score
+// if the answer is incorrect the score stays the same
+// show total score at the end
