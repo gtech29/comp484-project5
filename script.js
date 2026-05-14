@@ -1,3 +1,36 @@
+const csunLocations = [
+  {
+    name: "Santa Susana Hall",
+    grid: "D2",
+    north: 34.23785689046657,
+    south: 34.23736342650573,
+    east: -118.52915965340996,
+    west: -118.52942527889772,
+  },
+  {
+    name: "C.R. Johnson Auditorium",
+    grid: "D5",
+  },
+  {
+    name: "Charles H. Noski Auditorium",
+    grid: "C5",
+  },
+  {
+    name: "Bookstein Hall",
+    grid: "C5",
+  },
+  {
+    name: "Arbor Grill",
+    grid: "D5",
+  },
+];
+let score = 0;
+let currentQuestionIndex = 0;
+const currentLocationDisplay = document.querySelector(".current-location");
+const feedbackDisplay = document.querySelector("#feedback");
+const scoreDisplay = document.querySelector("#score");
+let answered = false;
+
 // Google Maps
 ((g) => {
   var h,
@@ -43,16 +76,43 @@
   v: "weekly",
 });
 
+// load map
 async function initMap() {
   await google.maps.importLibrary("maps");
   await customElements.whenDefined("gmp-map");
   const mapElement = document.querySelector("gmp-map");
+
+  // get inner map
   const map = mapElement.innerMap;
+
+  // lock map movement
   map.setOptions({
     gestureHandling: "none",
     zoomControl: false,
     disableDefaultUI: true,
     keyboardShortcuts: false,
+  });
+
+  // get latitude and longitude when user double-clicks
+  const doubleClick = map.addListener("dblclick", function (e) {
+    const latitude = e.latLng.lat();
+    const longitude = e.latLng.lng();
+    //check if current location has already been answered
+    if (answered) {
+      feedbackDisplay.textContent = "You already answered this section";
+    } else if (
+      latitude <= csunLocations[currentQuestionIndex].north &&
+      latitude >= csunLocations[currentQuestionIndex].south &&
+      longitude <= csunLocations[currentQuestionIndex].east &&
+      longitude >= csunLocations[currentQuestionIndex].west
+    ) {
+      feedbackDisplay.textContent = "Correct!";
+      scoreDisplay.textContent = `Score: ${++score}/${csunLocations.length}`;
+      answered = true;
+    } else {
+      feedbackDisplay.textContent = "Sorry, wrong location";
+      answered = true;
+    }
   });
 
   console.log("Google Map loaded successfully.");
@@ -68,39 +128,11 @@ initMap().catch((error) => {
 // start on the first location: Santa Susana Hall
 // after the user makes a guess the app moves to the next question/location and so on.
 // keep going until all five locations are finished
-const csunLocations = [
-  {
-    name: "Santa Susana Hall",
-    grid: "D2",
-  },
-  {
-    name: "C.R. Johnson Auditorium",
-    grid: "D5",
-  },
-  {
-    name: "Charles H. Noski Auditorium",
-    grid: "C5",
-  },
-  {
-    name: "Bookstein Hall",
-    grid: "C5",
-  },
-  {
-    name: "Arbor Grill",
-    grid: "D5",
-  },
-];
-let score = 0;
-let currentQuestionIndex = 0;
-
-const currentLocationDisplay = document.querySelector(".current-location");
-const feedbackDisplay = document.querySelector("#feedback");
-const scoreDisplay = document.querySelector("#score");
 
 function updateSidePanel() {
   const currentLocation = csunLocations[currentQuestionIndex];
   currentLocationDisplay.textContent = currentLocation.name;
-  feedbackDisplay = "";
+  feedbackDisplay.textContent = "";
   scoreDisplay.textContent = `Score: ${score}/${csunLocations.length}`;
 }
 updateSidePanel();
