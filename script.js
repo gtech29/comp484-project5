@@ -1,3 +1,5 @@
+// Stores all quiz locations and their rectangular map boundaries.
+// Each location has a name, grid label, and north/south/east/west bounds.
 const csunLocations = [
   {
     name: "Santa Susana Hall",
@@ -10,28 +12,49 @@ const csunLocations = [
   {
     name: "C.R. Johnson Auditorium",
     grid: "D5",
+    north: 34.24169719660752,
+    south: 34.241284676700964,
+    east: -118.52874118123677,
+    west: -118.52914143042558,
   },
   {
     name: "Charles H. Noski Auditorium",
     grid: "C5",
+    north: 34.24236930514472,
+    south: 34.242113256145174,
+    east: -118.53113359999668,
+    west: -118.5314381602808,
   },
   {
     name: "Bookstein Hall",
     grid: "C5",
+    north: 34.24243259361179,
+    south: 34.24141191302149,
+    east: -118.53007829053918,
+    west: -118.53107738510377,
   },
   {
     name: "Arbor Grill",
     grid: "D5",
+    north: 34.2413176141375,
+    south: 34.241036243056115,
+    east: -118.52955305397798,
+    west: -118.52979342989467,
   },
 ];
+
+// Tracks the user's current score, current question, and quiz state.
 let score = 0;
 let currentQuestionIndex = 0;
+let answered = false;
+let gameComplete = false;
+
+// Connects JavaScript to the side panel elements so the page can update dynamically.
 const currentLocationDisplay = document.querySelector(".current-location");
 const feedbackDisplay = document.querySelector("#feedback");
 const scoreDisplay = document.querySelector("#score");
-let answered = false;
 
-// Google Maps
+// Loads the Google Maps JavaScript API.
 ((g) => {
   var h,
     a,
@@ -44,6 +67,7 @@ let answered = false;
     b = window;
 
   b = b[c] || (b[c] = {});
+
   var d = b.maps || (b.maps = {}),
     r = new Set(),
     e = new URLSearchParams(),
@@ -76,16 +100,85 @@ let answered = false;
   v: "weekly",
 });
 
-// load map
+// Returns the location object for the current question.
+function getCurrentLocation() {
+  return csunLocations[currentQuestionIndex];
+}
+
+// Updates the score text in the side panel.
+function updateScoreDisplay() {
+  scoreDisplay.textContent = `Score: ${score}/${csunLocations.length}`;
+}
+
+// Updates the side panel with the current location and current score.
+function updateSidePanel() {
+  const currentLocation = getCurrentLocation();
+
+  currentLocationDisplay.textContent = currentLocation.name;
+  feedbackDisplay.textContent = "";
+  updateScoreDisplay();
+}
+
+// Checks whether the user's double-click is inside the current location's rectangle.
+function isClickInsideLocation(latitude, longitude, location) {
+  return (
+    latitude <= location.north &&
+    latitude >= location.south &&
+    longitude <= location.east &&
+    longitude >= location.west
+  );
+}
+
+// Draws the correct location area on the map.
+// Green means the user's guess was correct.
+// Red means the user's guess was incorrect.
+function drawLocationRectangle(map, location, isCorrect) {
+  const rectangleColor = isCorrect ? "#008000" : "#ff0000";
+
+  new google.maps.Rectangle({
+    strokeColor: rectangleColor,
+    strokeOpacity: 0.8,
+    strokeWeight: 2,
+    fillColor: rectangleColor,
+    fillOpacity: 0.35,
+    map: map,
+    bounds: {
+      north: location.north,
+      south: location.south,
+      east: location.east,
+      west: location.west,
+    },
+  });
+}
+
+// Moves the quiz to the next location after a short delay.
+// If there are no locations left, the quiz ends and shows the final score.
+function moveToNextQuestion() {
+  setTimeout(function () {
+    if (currentQuestionIndex < csunLocations.length - 1) {
+      currentQuestionIndex++;
+      answered = false;
+      updateSidePanel();
+    } else {
+      gameComplete = true;
+      currentLocationDisplay.textContent = "Finished";
+      feedbackDisplay.textContent = "Quiz complete!";
+      scoreDisplay.textContent = `Final Score: ${score}/${csunLocations.length}`;
+    }
+  }, 1500);
+}
+
+// Initializes the Google Map after the Maps library has loaded.
 async function initMap() {
   await google.maps.importLibrary("maps");
   await customElements.whenDefined("gmp-map");
+
   const mapElement = document.querySelector("gmp-map");
 
-  // get inner map
+  // Gets the actual Google Map object from the gmp-map element.
   const map = mapElement.innerMap;
 
-  // lock map movement
+  // Locks the map so the user cannot pan, zoom, or use keyboard movement.
   map.setOptions({
     gestureHandling: "none",
     zoomControl: false,
@@ -93,53 +186,58 @@ async function initMap() {
     keyboardShortcuts: false,
   });
 
-  // get latitude and longitude when user double-clicks
-  const doubleClick = map.addListener("dblclick", function (e) {
+  // Handles the user's double-click guess on the map.
+  map.addListener("dblclick", function (e) {
+    // Prevents guesses after the quiz is finished.
+    if (gameComplete) {
+      feedbackDisplay.textContent = "The quiz is already complete.";
+      return;
+    }
+
+    // Prevents the user from answering the same question more than once.
+    if (answered) {
+      feedbackDisplay.textContent = "You already answered this section.";
+      return;
+    }
+
+    // Gets the latitude and longitude of the user's double-click.
     const latitude = e.latLng.lat();
     const longitude = e.latLng.lng();
-    //check if current location has already been answered
-    if (answered) {
-      feedbackDisplay.textContent = "You already answered this section";
-    } else if (
-      latitude <= csunLocations[currentQuestionIndex].north &&
-      latitude >= csunLocations[currentQuestionIndex].south &&
-      longitude <= csunLocations[currentQuestionIndex].east &&
-      longitude >= csunLocations[currentQuestionIndex].west
-    ) {
+
+    // Gets the current location being asked in the quiz.
+    const currentLocation = getCurrentLocation();
+
+    // Determines whether the user's guess is inside the correct rectangle.
+    const isCorrect = isClickInsideLocation(
+      latitude,
+      longitude,
+      currentLocation,
+    );
+
+    // Draws the correct location area in green or red.
+    drawLocationRectangle(map, currentLocation, isCorrect);
+
+    // Updates feedback and score based on the user's answer.
+    if (isCorrect) {
       feedbackDisplay.textContent = "Correct!";
-      scoreDisplay.textContent = `Score: ${++score}/${csunLocations.length}`;
-      answered = true;
+      score++;
+      updateScoreDisplay();
     } else {
-      feedbackDisplay.textContent = "Sorry, wrong location";
-      answered = true;
+      feedbackDisplay.textContent = "Sorry, wrong location.";
     }
+
+    // Marks the current question as answered and moves forward.
+    answered = true;
+    moveToNextQuestion();
   });
 
   console.log("Google Map loaded successfully.");
 }
 
+// Starts the map and reports any loading errors.
 initMap().catch((error) => {
   console.error("Google Map failed to load:", error);
 });
-/////////////////////////////////////////
-/////          Tracker 1            /////
-/////////////////////////////////////////
-// This tracker needs to determine Which location/question should the side panel ask the user to find right now?
-// start on the first location: Santa Susana Hall
-// after the user makes a guess the app moves to the next question/location and so on.
-// keep going until all five locations are finished
 
-function updateSidePanel() {
-  const currentLocation = csunLocations[currentQuestionIndex];
-  currentLocationDisplay.textContent = currentLocation.name;
-  feedbackDisplay.textContent = "";
-  scoreDisplay.textContent = `Score: ${score}/${csunLocations.length}`;
-}
+// Displays the starting location and starting score when the page first loads.
 updateSidePanel();
-/////////////////////////////////////////
-/////          Tracker 2            /////
-/////////////////////////////////////////
-// This tracker calculates and keeps track of the score,
-// it starts at 0/5 and if the answer is right then add 1 to the score
-// if the answer is incorrect the score stays the same
-// show total score at the end
